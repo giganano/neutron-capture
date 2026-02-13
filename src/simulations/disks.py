@@ -69,7 +69,8 @@ class diskmodel(vice.milkyway):
 	"""
 
 	def __init__(self, zone_width = 0.1, name = "diskmodel", spec = "static",
-		verbose = True, migration_mode = "diffusion", **kwargs):
+		verbose = True, migration_mode = "diffusion",
+		timestep_size = 0.01, elements = ["fe", "o"], **kwargs):
 		super().__init__(zone_width = zone_width, name = name,
 			verbose = verbose, **kwargs)
 		if self.zone_width <= 0.2 and self.dt <= 0.02 and self.n_stars >= 6:
@@ -130,14 +131,22 @@ class diskmodel(vice.milkyway):
 						for j in range(self.n_zones):
 							if spec == "expifr":
 								obj = gasflows.constant_ifrmode
+								args = (
+									i * zone_width,
+									inputs.RADIAL_GAS_FLOW_SPEED,
+								)
 							elif spec == "expifr_gse":
-								raise ValueError("Need to set up gas flows.")
+								obj = gasflows.constant_amd_ifrmode
+								args = (
+									i * zone_width,
+									inputs.RADIAL_GAS_FLOW_SPEED,
+									self
+								)
 							else:
 								raise ValueError("Bruh.")
 							if abs(i - j) == 1:
-								self.migration.stars[i][j] = obj(
-									i * zone_width,
-									inputs.RADIAL_GAS_FLOW_SPEED,
+								self.migration.gas[i][j] = obj(
+									*args,
 									inward = i < j,
 									**kwargs)
 							else: pass
@@ -162,6 +171,16 @@ class diskmodel(vice.milkyway):
 			else:
 				self.radialflow.setup(self, **callkwargs)
 		else: pass
+
+		if inputs.OUTFLOWS == "central":
+			for i in range(self.n_zones):
+				radius = zone_width * (i + 0.5)
+				self.zones[i].eta = inputs.OUTFLOWS_CENTRAL_ETA * m.exp(
+					-radius / inputs.OUTFLOWS_SCALE_RADIUS)
+		elif inputs.OUTFLOWS is None:
+			for i in range(self.n_zones): self.zones[i].eta = 0
+		else:
+			raise ValueError("Bad outflow setting in input file.")
 
 
 	def run(self, *args, **kwargs):
@@ -198,6 +217,7 @@ class diskmodel(vice.milkyway):
 			**kwargs)
 		model.n_stars = config.star_particle_density
 		model.bins = config.bins
+		model.nthreads = config.nthreads
 		return model
 
 
@@ -211,7 +231,7 @@ class evol_spec:
 		while (i + 1) * zone_width < max_radius:
 			self._radii.append((i + 0.5) * zone_width)
 			self._evol.append({
-					"oscil":		models.insideout_oscil,
+					# "oscil":		models.insideout_oscil,
 					"static": 		models.static,
 					"insideout": 	models.insideout,
 					"lateburst": 	models.lateburst,

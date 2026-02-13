@@ -3,9 +3,8 @@ Handles radial gas flows in these models.
 """
 
 from .._globals import MAX_SF_RADIUS, END_TIME, M_STAR_MW
-from .models.utils import get_bin_number, sinusoid
+from .models.utils import get_bin_number
 from .models.gradient import gradient
-from .outflows import evoldata
 from vice.toolkit.interpolation import interp_scheme_1d
 from vice.milkyway.milkyway import _MAX_RADIUS_ as MAX_RADIUS # 20 kpc
 from scipy.integrate import solve_ivp
@@ -14,6 +13,10 @@ import warnings
 import vice
 from vice import ScienceWarning
 import sys
+
+
+class container: pass
+
 
 class driver(interp_scheme_1d):
 
@@ -248,24 +251,42 @@ class amd_ifrmode(amd):
 		return vgas
 
 
+class constant_amd_ifrmode(constant_ifrmode, amd_ifrmode):
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	def __init__(self, radius, speed, mw_model, inward = True,
+		recycling = 0.4, beta_phi_in = 0.7, beta_phi_out = 0,
+		onset = 1, dr = 0.1, dt = 0.01,
+		outfilename = "gasvelocities.out"):
+		constant_ifrmode.__init__(self, radius, speed, inward = inward,
+			onset = onset, dr = dr, dt = dt, outfilename = outfilename)
+		amd_ifrmode.__init__(self, radius, mw_model, inward = inward,
+			beta_phi_in = beta_phi_in, beta_phi_out = beta_phi_out,
+			onset = onset, dr = dr, dt = dt, outfilename = outfilename)
+		
+	def __call__(self, **ism_state):
+		vgas = amd_ifrmode.vgas(self, **ism_state)
+		vgas += constant_ifrmode.vgas(self, **ism_state)
+		if ism_state["time"] < self.onset: return 0
+		if vgas != 0:
+			if (self.inward and vgas < 0) or (not self.inward and vgas > 0 or
+				self.radius == 0):
+				self.write(ism_state["time"], [self.radius], [vgas])
+				frac = self.area_fraction(self.radius, vgas, dr = self.dr)
+				if frac < 0:
+					frac = 0
+				elif frac > 1 - 1.0e-9:
+					frac = 1 - 1.0e-9
+				else: pass
+				return frac
+			else:
+				return 0
+		else:
+			# without this seemingly useless if-statement, both inward and
+			# outward components write to the output file, resulting in
+			# duplicate entries of zero velocity.
+			if self.inward or (not self.inward and self.radius == 0):
+				self.write(ism_state["time"], [self.radius], [0])
+			return 0
 
 
 

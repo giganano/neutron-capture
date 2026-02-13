@@ -60,6 +60,11 @@ underscores. (Default: \"fe_o\")""",
 		type = float,
 		default = 0.1)
 
+	parser.add_argument("--nthreads",
+		help = "The number of threads to use in model integration.",
+		type = int,
+		default = 1)
+
 	return parser
 
 
@@ -76,7 +81,8 @@ def model(args):
 		timestep_size = args.dt,
 		star_particle_density = args.nstars,
 		zone_width = args.zonewidth,
-		elements = args.elements.split('_')
+		elements = args.elements.split('_'),
+		nthreads = args.nthreads
 	)
 	kwargs = dict(
 		name = args.name,
