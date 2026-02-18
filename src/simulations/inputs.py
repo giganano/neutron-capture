@@ -5,8 +5,8 @@ import vice
 import os
 
 # --------------- GSE PARAMETERS --------------- #
-GSE_MASS_RATIO = 0
-GSE_REFERENCE_MODEL = "%s/../../outputs/expifr/amd/base" % (
+GSE_MASS_RATIO = 1 / 3
+GSE_REFERENCE_MODEL = "%s/../../outputs/expifr/base" % (
 	os.path.dirname(os.path.abspath(__file__)))
 GSE_T_ACC = 3.2
 GSE_SIGMA_TIME = 0.5
@@ -113,7 +113,7 @@ RADIAL_GAS_FLOW_BETA_PHI_IN = logistic_betaphiin( # works in AMD mode
 # 	minimum = 0.9, maximum = 1)
 
 # RADIAL_GAS_FLOW_GSE_BETA_PHI_IN = RADIAL_GAS_FLOW_BETA_PHI_IN
-RADIAL_GAS_FLOW_GSE_BETA_PHI_IN = -0.6
+RADIAL_GAS_FLOW_GSE_BETA_PHI_IN = -0.8
 
 
 # def RADIAL_GAS_FLOW_BETA_PHI_IN(r, t):

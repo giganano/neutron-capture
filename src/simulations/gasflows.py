@@ -149,6 +149,9 @@ class constant(base):
 			outfilename = outfilename)
 		self.speed = speed
 
+	def vgas(self, *args, **kwargs):
+		return self.speed
+
 
 class constant_ifrmode(constant):
 
@@ -265,7 +268,7 @@ class constant_amd_ifrmode(constant_ifrmode, amd_ifrmode):
 		
 	def __call__(self, **ism_state):
 		vgas = amd_ifrmode.vgas(self, **ism_state)
-		vgas += constant_ifrmode.vgas(self, **ism_state)
+		# vgas += constant_ifrmode.vgas(self, **ism_state)
 		if ism_state["time"] < self.onset: return 0
 		if vgas != 0:
 			if (self.inward and vgas < 0) or (not self.inward and vgas > 0 or
@@ -287,40 +290,4 @@ class constant_amd_ifrmode(constant_ifrmode, amd_ifrmode):
 			if self.inward or (not self.inward and self.radius == 0):
 				self.write(ism_state["time"], [self.radius], [0])
 			return 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
