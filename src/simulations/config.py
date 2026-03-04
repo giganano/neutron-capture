@@ -41,7 +41,8 @@ class config:
 			"zone_width": 				0.1,
 			"elements": 				["fe", "o"],
 			"bins": 					[-3 + 0.01 * i for i in range(601)],
-			"nthreads": 				1
+			"nthreads": 				1,
+			"setup_nthreads": 			1
 		}
 		for i in kwargs.keys(): defaults[i] = kwargs[i]
 		self.timestep_size = 			defaults["timestep_size"]
@@ -50,6 +51,7 @@ class config:
 		self.elements = 				defaults["elements"]
 		self.bins = 					defaults["bins"]
 		self.nthreads = 				defaults["nthreads"]
+		self.setup_nthreads = 			defaults["setup_nthreads"]
 
 	@property
 	def timestep_size(self):

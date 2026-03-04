@@ -100,6 +100,8 @@ class diskmodel(vice.milkyway):
 			self.zones[i].tau_star = sfe.sfe(area, mode = self.mode)
 			self.zones[i].RIa = "exp"
 			self.zones[i].tau_ia = 1.5
+			self.zones[i].channels = ["ccsne", "sneia", "agb",
+				inputs.binary_ns, inputs.tertiary_ns]
 
 		for i in range(self.n_zones):
 			self.zones[i].Zin = {}
@@ -153,6 +155,32 @@ class diskmodel(vice.milkyway):
 				else:
 					self.radialflow = gasflows.constant(
 						inputs.RADIAL_GAS_FLOW_SPEED, **kwargs)
+			elif inputs.RADIAL_GAS_FLOWS == "angular-momentum-dilution":
+				if self.mode == "ifr":
+					for i in range(self.n_zones):
+						for j in range(self.n_zones):
+							if spec == "expifr":
+								bphiin = inputs.RADIAL_GAS_FLOW_BETA_PHI_IN
+							elif spec == "expifr_gse":
+								bphiin = mergers.beta_phi_in_GSE(
+									zone_width * (i + 0.5),
+									dr = zone_width,
+									dt = self.dt)
+							else:
+								raise ValueError("Bruh.")
+							bphiout = inputs.RADIAL_GAS_FLOW_BETA_PHI_OUT
+							if abs(i - j) == 1:
+								self.migration.gas[i][j] = gasflows.amd_ifrmode(
+									i * zone_width,
+									self,
+									inward = i > j,
+									beta_phi_in = bphiin,
+									beta_phi_out = bphiout,
+									**kwargs)
+							else: pass
+				else:
+					raise ValueError(
+						"Need to setup gas flows for AMD in SFR mode.")
 			else:
 				raise ValueError(
 					"Unrecognized radial gas flow setting: %s" % (
@@ -218,6 +246,7 @@ class diskmodel(vice.milkyway):
 		model.n_stars = config.star_particle_density
 		model.bins = config.bins
 		model.nthreads = config.nthreads
+		model.setup_nthreads = config.setup_nthreads
 		return model
 
 

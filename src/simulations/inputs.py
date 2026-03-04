@@ -1,11 +1,13 @@
 
 from .models.utils import logistic
+from . import neutron_capture_dtds
 import math as m
 import vice
 import os
 
 # --------------- GSE PARAMETERS --------------- #
 GSE_MASS_RATIO = 1 / 3
+# GSE_MASS_RATIO = 0
 GSE_REFERENCE_MODEL = "%s/../../outputs/expifr/base" % (
 	os.path.dirname(os.path.abspath(__file__)))
 GSE_T_ACC = 3.2
@@ -54,14 +56,15 @@ SFROSCIL_PHASE = 0 # perfectly in phase
 YIELDSOLAR = 1
 FE_CC_FRAC = 0.35
 METDEPYIELDS = False
+AGB_SETTING = "cristallo11"
 
 
 
 
 
 # --------------- OUTFLOWS --------------- #
-OUTFLOWS = "central" # None to turn them off
-# OUTFLOWS = None
+# OUTFLOWS = "central" # None to turn them off
+OUTFLOWS = None
 OUTFLOWS_CENTRAL_ETA = 1
 OUTFLOWS_SCALE_RADIUS = 5
 
@@ -83,9 +86,8 @@ class logistic_betaphiin(logistic):
 		return super().__call__(radius) # time-independent but radius-dependent
 
 
-RADIAL_GAS_FLOWS = "constant" # None turns them off
-# RADIAL_GAS_FLOWS = "amd_pwd"
-# RADIAL_GAS_FLOWS = "constant"
+# RADIAL_GAS_FLOWS = "constant" # None turns them off
+RADIAL_GAS_FLOWS = "angular-momentum-dilution"
 # RADIAL_GAS_FLOWS = None
 RADIAL_GAS_FLOW_ONSET = 0.1 # Gyr -- radial flow starts 1 Gyr in
 
@@ -105,6 +107,7 @@ RADIAL_GAS_FLOW_DVDR = -0.05
 # RADIAL_GAS_FLOW_BETA_PHI_IN = logistic_betaphiin(
 # 	midpoint = 17.5, scale = 2.5,
 # 	minimum = 0.9, maximum = 0.7)
+# RADIAL_GAS_FLOW_BETA_PHI_IN = 1
 RADIAL_GAS_FLOW_BETA_PHI_IN = logistic_betaphiin( # works in AMD mode
 	midpoint = 12.5, scale = 2.5,
 	minimum = 0.8, maximum = 1)
@@ -118,7 +121,7 @@ RADIAL_GAS_FLOW_GSE_BETA_PHI_IN = -0.8
 
 # def RADIAL_GAS_FLOW_BETA_PHI_IN(r, t):
 	# return 0.3 + 0.4 * (1 - m.exp(-t / 2))
-RADIAL_GAS_FLOW_BETA_PHI_OUT = 0
+RADIAL_GAS_FLOW_BETA_PHI_OUT = 1
 
 # used when RADIAL_GAS_FLOWS = "potential_well_deepening"
 RADIAL_GAS_FLOW_PWDGAMMA = 0.2
@@ -154,6 +157,24 @@ vice.yields.sneia.settings["mg"] = 0
 vice.yields.ccsne.settings["fe"] = FE_CC_FRAC * YIELDSOLAR * vice.solar_z["fe"]
 vice.yields.sneia.settings["fe"] = (
 	1 - FE_CC_FRAC) * YIELDSOLAR * vice.solar_z["fe"]
+
+vice.yields.ccsne.settings["tl"] = 1.0e-9
+vice.yields.sneia.settings["tl"] = 0
+vice.yields.ccsne.settings["pb"] = 0
+vice.yields.sneia.settings["pb"] = 0
+vice.yields.ccsne.settings["bi"] = 0
+vice.yields.sneia.settings["bi"] = 0
+
+for elem in ["y", "ba", "ce", "eu"]:
+	vice.yields.ccsne.settings[elem] = 0
+	vice.yields.sneia.settings[elem] = 0
+	vice.yields.agb.settings[elem] = AGB_SETTING
+
+binary_ns = vice.channel(neutron_capture_dtds.binary_ns,
+	yields = {"pb": 1.0e-9})
+
+tertiary_ns = vice.channel(neutron_capture_dtds.tertiary_ns,
+	yields = {"bi": 1.0e-9})
 
 
 class metdepyield:

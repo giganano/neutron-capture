@@ -122,7 +122,10 @@ class Zin_with_GSE:
 			"fe": self.sigmadotin_gse.fe_h,
 			"o": self.sigmadotin_gse.o_h,
 			"mg": self.sigmadotin_gse.mg_h
-		}[elem.lower()]
+		}
+		for e in vice.elements.recognized:
+			if e not in self.zin_gse.keys(): self.zin_gse[e] = -float("inf")
+		self.zin_gse = self.zin_gse[elem.lower()]
 		self.zin_gse = vice.solar_z[elem] * 10**self.zin_gse
 
 	def __call__(self, time):

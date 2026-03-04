@@ -65,6 +65,11 @@ underscores. (Default: \"fe_o\")""",
 		type = int,
 		default = 1)
 
+	parser.add_argument("--setup-nthreads",
+		help = "The number of threads to use in setting up stellar populations.",
+		type = int,
+		default = 1)
+
 	return parser
 
 
@@ -82,7 +87,8 @@ def model(args):
 		star_particle_density = args.nstars,
 		zone_width = args.zonewidth,
 		elements = args.elements.split('_'),
-		nthreads = args.nthreads
+		nthreads = args.nthreads,
+		setup_nthreads = args.setup_nthreads
 	)
 	kwargs = dict(
 		name = args.name,
