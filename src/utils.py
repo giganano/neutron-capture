@@ -5,9 +5,9 @@ import os
 
 def subsample_stars(stars, n = 1000):
 	r"""
-	Subsample from the stellar populations in the model based on their individual
-	masses. Individually sampled points can be interpreted as single stars as
-	opposed to single stellar populations.
+	Subsample from the stellar populations in the model based on their
+	individual masses. Individually sampled points can be interpreted as single
+	stars as opposed to single stellar populations.
 	"""
 	assert isinstance(stars, vice.dataframe)
 	assert "mass" in stars.keys()
